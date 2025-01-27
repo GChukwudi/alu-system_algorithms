@@ -1,6 +1,7 @@
 #ifndef GRAPHS_H
 #define GRAPHS_H
 
+#include <stddef.h>
 
 /**
  * enum edge_type_e - Enumerates the different types of
