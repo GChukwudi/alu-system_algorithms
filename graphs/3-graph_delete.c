@@ -1,29 +1,39 @@
-#include "graphs.h"
 #include <stdlib.h>
-#include <string.h>
+#include "graphs.h"
 
 /**
- * delete_edge_from_vertex - Deletes an edge from a vertex's edge list
- * @vertex: The vertex to delete the edge from
- * @dest: The destination vertex of the edge to delete
+ * graph_delete - Completely deletes a graph
+ * @graph: Pointer to the graph to delete
  */
-static void delete_edge_from_vertex(vertex_t *vertex, vertex_t *dest)
+void graph_delete(graph_t *graph)
 {
-	edge_t *current, *prev = NULL;
+	if (!graph)
+		return;
 
-	current = vertex->edges;
-	while (current)
+	vertex_t *current_vertex = graph->vertices;
+	vertex_t *next_vertex;
+
+	/* Loop through all vertices */
+	while (current_vertex)
 	{
-		if (current->dest == dest)
+		edge_t *current_edge = current_vertex->edges;
+		edge_t *next_edge;
+
+		/* Delete all edges for the current vertex */
+		while (current_edge)
 		{
-			if (prev)
-				prev->next = current->next;
-			else
-				vertex->edges = current->next;
-			free(current);
-			break;
+			next_edge = current_edge->next;
+			free(current_edge);
+			current_edge = next_edge;
 		}
-		prev = current;
-		current = current->next;
+
+		/* Move to the next vertex and free the current vertex */
+		next_vertex = current_vertex->next;
+		free(current_vertex->content); /* Free the content string */
+		free(current_vertex);
+		current_vertex = next_vertex;
 	}
+
+	/* Free the graph itself */
+	free(graph);
 }
