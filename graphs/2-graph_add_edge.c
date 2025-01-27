@@ -11,6 +11,9 @@
  */
 static vertex_t *find_vertex(graph_t *graph, const char *content)
 {
+	if (!graph || !content || !graph->vertices)
+		return (NULL);
+
 	vertex_t *current = graph->vertices;
 
 	while (current)
@@ -32,9 +35,10 @@ static vertex_t *find_vertex(graph_t *graph, const char *content)
  */
 static int add_edge_to_vertex(vertex_t *vertex, vertex_t *dest)
 {
-	edge_t *new_edge;
+	if (!vertex || !dest)
+		return (0);
 
-	new_edge = malloc(sizeof(edge_t));
+	edge_t *new_edge = malloc(sizeof(edge_t));
 	if (!new_edge)
 		return (0);
 
@@ -56,14 +60,13 @@ static int add_edge_to_vertex(vertex_t *vertex, vertex_t *dest)
  */
 int graph_add_edge(graph_t *graph, const char *src, const char *dest, edge_type_t type)
 {
-	vertex_t *src_vertex, *dest_vertex;
-
 	if (!graph || !src || !dest)
 		return (0);
 
 	/* Find source and destination vertices */
-	src_vertex = find_vertex(graph, src);
-	dest_vertex = find_vertex(graph, dest);
+	vertex_t *src_vertex = find_vertex(graph, src);
+	vertex_t *dest_vertex = find_vertex(graph, dest);
+
 	if (!src_vertex || !dest_vertex)
 		return (0);
 
@@ -75,7 +78,13 @@ int graph_add_edge(graph_t *graph, const char *src, const char *dest, edge_type_
 	if (type == BIDIRECTIONAL)
 	{
 		if (!add_edge_to_vertex(dest_vertex, src_vertex))
+		{
+			/* Cleanup: remove edge from src to dest */
+			edge_t *edge = src_vertex->edges;
+			src_vertex->edges = src_vertex->edges->next;
+			free(edge);
 			return (0);
+		}
 	}
 
 	return (1);
