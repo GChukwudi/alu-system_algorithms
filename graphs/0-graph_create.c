@@ -1,4 +1,4 @@
-#include "graph.h"
+#include "graphs.h"
 
 /**
  * graph_create - Allocates memory to store a graph_t structure
