@@ -10,30 +10,30 @@
 
 vertex_t *graph_add_vertex(graph_t *graph, const char *str)
 {
-    vertex_t *vertex = malloc(sizeof(vertex_t));
-    vertex_t *last = graph->vertices;
+	vertex_t *vertex = malloc(sizeof(vertex_t));
+	vertex_t *last = graph->vertices;
 
-    if (!vertex)
-        return (NULL);
+	if (!vertex)
+		return (NULL);
 
-    vertex->index = graph->nb_vertices;
-    vertex->content = strdup(str);
-    vertex->nb_edges = 0;
-    vertex->edges = NULL;
-    vertex->next = NULL;
+	vertex->index = graph->nb_vertices;
+	vertex->content = strdup(str);
+	vertex->nb_edges = 0;
+	vertex->edges = NULL;
+	vertex->next = NULL;
 
-    if (!last)
-    {
-        graph->vertices = vertex;
-    }
-    else
-    {
-        while (last->next)
-            last = last->next;
-        last->next = vertex;
-    }
+	if (!last)
+	{
+		graph->vertices = vertex;
+	}
+	else
+	{
+		while (last->next)
+			last = last->next;
+		last->next = vertex;
+	}
 
-    graph->nb_vertices++;
+	graph->nb_vertices++;
 
-    return (vertex);
+	return (vertex);
 }
