@@ -1,95 +1,182 @@
-#include <stdlib.h>
 #include "heap.h"
 
 /**
- * heap_create - Creates a Heap data structure
- * @data_cmp: Pointer to a comparison function
- *
- * Return: Pointer to the created heap_t structure, or NULL if it fails
+ * int2bin- Afucntion to convert an integer to a binary string
+ * @a: integer to be converted
+ * Return: binary string of an integer
  */
-heap_t *heap_create(int (*data_cmp)(void *, void *))
+static char *int2bin(int a)
 {
-    heap_t *heap;
+	char *str, *tmp;
+	int cnt = 31;
 
-    if (!data_cmp)
-        return (NULL);
-
-    heap = malloc(sizeof(heap_t));
-    if (!heap)
-        return (NULL);
-
-    heap->size = 0;
-    heap->data_cmp = data_cmp;
-    heap->root = NULL;
-
-    return (heap);
+	str = (char *)calloc(1, 33);
+	tmp = str;
+	while (cnt > -1)
+	{
+		str[cnt] = '0';
+		cnt--;
+	}
+	cnt = 31;
+	while (a > 0)
+	{
+		if (a % 2 == 1)
+		{
+			str[cnt] = '1';
+		}
+		cnt--;
+		a = a / 2;
+	}
+	return (tmp);
 }
 
 /**
- * binary_tree_node - Creates a generic Binary Tree node
- * @parent: Pointer to the parent node
- * @data: Data to store in the node
- *
- * Return: Pointer to the created node or NULL if it fails
+ * get_bottom_node - A function that deletes the bottom
+ * node of a heap and fetches the data of bottom node
+ * @heap:  A pointer to the heap where the node has to inserted
+ * @exit_status: set to EXIT_FAILURE if strdup fails
+ * Return: A pointer to the bottom node
  */
-binary_tree_node_t *binary_tree_node(binary_tree_node_t *parent, void *data)
+static void *get_bottom_node(heap_t *heap, int *exit_status)
 {
-    binary_tree_node_t *node = malloc(sizeof(binary_tree_node_t));
-    if (!node)
-        return (NULL);
+	binary_tree_node_t *temp = NULL, *parent = NULL;
+	int l = 0, r = 0, pos, len, i = 0;
+	char *bin = NULL, *b_str = int2bin((int)heap->size), *e =
+	    strchr(b_str, '1');
 
-    node->data = data;
-    node->left = NULL;
-    node->right = NULL;
-    node->parent = parent;
-
-    return (node);
+	pos = (int)(e - b_str);	/* get the MSB index */
+	bin = strdup(b_str + pos + 1);
+	if (bin == NULL)
+		*exit_status = EXIT_FAILURE;
+	else
+	{
+		temp = heap->root;
+		parent = temp;
+		len = strlen(bin);
+		while (i < len)
+		{
+			parent = temp;
+			if (bin[i] == '0')
+			{
+				temp = temp->left;
+				l++;
+				r = 0;
+			} else
+			{
+				temp = temp->right;
+				r++;
+				l = 0;
+			}
+			i++;
+		}
+		free(bin);
+		if (l > r)
+			parent->left = NULL;
+		else
+			parent->right = NULL;
+	}
+	free(b_str);
+	return (temp);
 }
 
 /**
- * heap_insert - Inserts a value into a Min Binary Heap
- * @heap: Pointer to the heap in which the node has to be inserted
- * @data: Pointer containing the data to store in the new node
- *
- * Return: Pointer to the created node containing data, or NULL if it fails
+ * swap - swap  pointers
+ * @a: first
+ * @b: sec
  */
-binary_tree_node_t *heap_insert(heap_t *heap, void *data)
+static void swap(void **a, void **b)
 {
-    if (!heap || !data)
-        return (NULL);
+	void *c;
 
-    if (heap->root == NULL)
-    {
-        heap->root = binary_tree_node(NULL, data);
-        if (heap->root)
-            heap->size++;
-        return heap->root;
-    }
-    
-    /* Implement insertion logic for maintaining Min Heap properties */
-    return (NULL); /* Placeholder for future implementation */
+	c = *a;
+	*a = *b;
+	*b = c;
 }
 
 /**
- * heap_extract - Extracts the root value of a Min Binary Heap
- * @heap: Pointer to the heap from which to extract the value
- *
- * Return: Pointer to the data that was stored in the root node of the heap
+ * adjust_heap- A function to compare and set the order
+ * @heap: A pointer to the heap to be ordered
+ */
+static void adjust_heap(heap_t *heap)
+{
+	binary_tree_node_t *temp;
+
+	temp = heap->root;
+	while (temp)
+	{
+		if (temp->data && temp->left && temp->right && temp->left->data
+		    && temp->right->data)
+		{
+			if ((heap->data_cmp(temp->data, temp->right->data) >= 0)
+			    && (heap->
+				data_cmp(temp->right->data,
+					 temp->left->data) < 0))
+			{
+				swap(&temp->data, &temp->right->data);
+				temp = temp->right;
+			} else if (heap->
+				   data_cmp(temp->data, temp->left->data) >= 0)
+			{
+				swap(&temp->data, &temp->left->data);
+				temp = temp->left;
+			} else
+				return;
+		} else if (temp->data && temp->left &&
+			   ((temp->left->data &&
+			     heap->data_cmp(temp->data, temp->left->data) >= 0)
+			    || temp->left->data == NULL))
+		{
+			swap(&temp->data, &temp->left->data);
+			temp = temp->left;
+		} else if (temp->data && temp->right &&
+			   ((temp->right->data &&
+			     heap->data_cmp(temp->data, temp->right->data) >= 0)
+			    || temp->right->data == NULL))
+		{
+			swap(&temp->data, &temp->right->data);
+			temp = temp->right;
+		} else
+			return;
+	}
+}
+
+/**
+ * heap_extract- A function that extratcs the root value in a Heap
+ * @heap:  A pointer to the heap in which root has to be extracted
+ * Return: A pointer to the data that was stored in the root node of the heap
  */
 void *heap_extract(heap_t *heap)
 {
-    if (!heap || !heap->root)
-        return (NULL);
+	void *data = NULL;
+	binary_tree_node_t *last = NULL, *extract_node = NULL;
+	int exit_status = EXIT_SUCCESS;
 
-    void *data = heap->root->data;
-    binary_tree_node_t *last = heap->root;
+	if (heap == NULL)
+		return (NULL);
+	if (heap->root == NULL)
+		return (NULL);
 
-    /* Locate the last node (this part requires a traversal function) */
-    /* Replace root with last node and reheapify */
-    
-    free(heap->root);
-    heap->root = NULL; /* Placeholder, real implementation needed */
-    heap->size--;
-    
-    return data;
+	extract_node = heap->root;
+	if (heap->root->left == NULL && heap->root->right == NULL)
+	{
+		data = extract_node->data;
+		free(heap->root);
+		heap->root = NULL;
+		heap->size--;
+		return (data);
+	}
+	last = get_bottom_node(heap, &exit_status);
+	if (exit_status == EXIT_SUCCESS)
+	{
+		data = extract_node->data;
+		/*Replace the root of the heap with the last element on the last level. */
+		if (last)
+			swap(&heap->root->data, &last->data);
+		free(last);
+		last = NULL;
+		heap->size--;
+		if (heap->data_cmp != NULL && heap->size > 1)
+			adjust_heap(heap);
+	}
+	return (data);
 }
