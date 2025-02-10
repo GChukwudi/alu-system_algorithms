@@ -1,39 +1,37 @@
-#include <stdlib.h>
 #include "graphs.h"
 
 /**
- * graph_delete - Completely deletes a graph
- * @graph: Pointer to the graph to delete
- */
+* graph_delete - deallocate memory for a graph
+* @graph: pointer to graph type
+* Arthor: Frank Onyema Orji
+*/
 void graph_delete(graph_t *graph)
 {
-	if (!graph)
-		return;
+	vertex_t *vertex_ptr, *temp_vertex;
+	edge_t *edge_ptr, *temp_edge;
 
-	vertex_t *current_vertex = graph->vertices;
-	vertex_t *next_vertex;
-
-	/* Loop through all vertices */
-	while (current_vertex)
+	if (graph == NULL)
 	{
-		edge_t *current_edge = current_vertex->edges;
-		edge_t *next_edge;
-
-		/* Delete all edges for the current vertex */
-		while (current_edge)
-		{
-			next_edge = current_edge->next;
-			free(current_edge);
-			current_edge = next_edge;
-		}
-
-		/* Move to the next vertex and free the current vertex */
-		next_vertex = current_vertex->next;
-		free(current_vertex->content); /* Free the content string */
-		free(current_vertex);
-		current_vertex = next_vertex;
+		return;
 	}
 
-	/* Free the graph itself */
+	vertex_ptr = graph->vertices;
+
+	while (vertex_ptr)
+	{
+		temp_vertex = vertex_ptr;
+		vertex_ptr = vertex_ptr->next;
+		free(temp_vertex->content);
+
+		edge_ptr = temp_vertex->edges;
+		while (edge_ptr)
+		{
+			temp_edge = edge_ptr;
+			edge_ptr = edge_ptr->next;
+			free(temp_edge);
+		}
+		free(temp_vertex);
+	}
+
 	free(graph);
 }
