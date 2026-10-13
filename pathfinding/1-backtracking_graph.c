@@ -6,7 +6,6 @@
  * @visited: Array of vertices already visited.
  * @current: Pointer to the current vertex.
  * @target: Pointer to the target vertex.
- * author: Frank Onyema Orji
  * Return: 1 on success, 0 on failure.
  */
 int recursive_backtrack_graph(queue_t **path, int *visited,
